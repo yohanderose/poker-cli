@@ -9,7 +9,8 @@ from multiprocessing import Pool
 from itertools import groupby
 from more_itertools import consecutive_groups
 from operator import itemgetter
-
+from PIL import Image
+import subprocess
 
 class Card(object):
 
@@ -54,6 +55,43 @@ def display_card(path, displace=(0,0)):
 			demo.y = 0
 			demo.path = path
 		time.sleep(2)
+
+def display_table(house, hand, displace=(0,0)):
+	house_images = [Image.open(x) for x in house]
+	hand_images = [Image.open(x) for x in hand]
+	widths, heights = zip(*(i.size for i in house_images))
+
+	total_width = sum(widths)
+	total_height = house_images[0].height * 2
+
+	final_img = Image.new('RGB', (total_width, total_height))
+	x_offset = 0
+	for im in house_images:
+		final_img.paste(im, (x_offset, 0))
+		x_offset += im.width
+
+	x_offset = 0
+	y_offset = hand_images[0].height
+	for im in hand_images:
+		final_img.paste(im, (x_offset, y_offset))
+		x_offset += im.width
+
+	final_img.resize((int(final_img.width/10), int(final_img.height/10)))
+	final_img.save('heyo.png')
+
+	with ueberzug.Canvas() as c:
+
+		demo = c.create_placement('heyo.png', x=0, y=0, 
+								scaler=ueberzug.ScalerOption.COVER.value)
+		demo.path = 'heyo.png'
+		demo.width = final_img.width
+		demo.height = final_img.height
+		demo.visibility = ueberzug.Visibility.VISIBLE
+
+		tmp = input()
+
+	# TODO: make this only able to remove this file (in root project dir)
+	# subprocess.run('rm heyo.png'.split())
 
 def reset():
 	deck = []
@@ -120,38 +158,33 @@ def analyse_play(play, suits_inplay, nums_inplay):
 	return result
 
 if __name__ == '__main__':
+	# paths = ['./cards/3D.png', './cards/8C.png']
+	deck = reset()
 
-	paths = ['./cards/3D.png', './cards/8C.png']
+	while True:
+		if len(deck) < 7:
+			deck = reset()
 
-	for path in paths:
-		display_card(path)
+		house = deck[:5]
+		deck = deck[5:]
+		hand = deck[:2]
+		deck = deck[2:]
 
-    # deck = reset()
+		play = sorted(house + hand)
+		suits = "C H S D"
+		suits_inplay = dict(zip(suits.split(), [[], [], [], []]))
+		nums_inplay = dict(zip(range(1,15), [0]*14))
 
-	# while True:
-	# 	if len(deck) < 7:
-	# 		deck = reset()
+		for card in play:
+			suits_inplay[card.suit].append(card.num)
+			nums_inplay[card.num] += 1
 
-	# 	house = deck[:5]
-	# 	deck = deck[5:]
-	# 	hand = deck[:2]
-	# 	deck = deck[2:]
+		result = analyse_play(play, suits_inplay, nums_inplay)
 
-	# 	play = sorted(house + hand)
-	# 	suits = "C H S D"
-	# 	suits_inplay = dict(zip(suits.split(), [[], [], [], []]))
-	# 	nums_inplay = dict(zip(range(1,15), [0]*14))
+		display_table([card.image for card in house], [card.image for card in hand])
 
-	# 	for card in play:
-	# 		suits_inplay[card.suit].append(card.num)
-	# 		nums_inplay[card.num] += 1
+		# print(play)
+		# print(suits_inplay)
+		# print(nums_inplay)
 
-	# 	result = analyse_play(play, suits_inplay, nums_inplay)
-
-	# 	display_card(house[0].image)	
-
-	# 	# print(play)
-	# 	# print(suits_inplay)
-	# 	# print(nums_inplay)
-
-	# 	print(result)
+		print(result)
