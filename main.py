@@ -98,7 +98,7 @@ def display_table(house, hand, displace=(0,0)):
 		tmp = input()
 
 	# TODO: make this only able to remove this file (in root project dir)
-	# subprocess.run('rm heyo.png'.split())
+	subprocess.run('rm heyo.png'.split())
 
 def reset():
 	deck = []
