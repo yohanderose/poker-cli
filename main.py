@@ -1,4 +1,3 @@
-import time
 import os
 import sys
 from random import shuffle
@@ -196,3 +195,5 @@ if __name__ == '__main__':
 		# print(nums_inplay)
 
 		print(result)
+
+		tmp = input()
