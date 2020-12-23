@@ -76,7 +76,15 @@ def display_table(house, hand, displace=(0,0)):
 		final_img.paste(im, (x_offset, y_offset))
 		x_offset += im.width
 
-	final_img.resize((int(final_img.width/10), int(final_img.height/10)))
+	# Find aspect ratio of final image and resize to terminal width
+	rows, cols = os.popen('stty size', 'r').read().split()
+	rows = int(rows) * 8.5
+	cols = int(cols) * 8.5
+	aspect = final_img.height/final_img.width
+	new_width = int(cols)
+	new_height = int(cols * aspect)
+
+	final_img = final_img.resize((new_width, new_height))
 	final_img.save('heyo.png')
 
 	with ueberzug.Canvas() as c:
